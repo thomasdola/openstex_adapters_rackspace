@@ -26,6 +26,10 @@ defmodule Openstex.Adapters.Rackspace.Utils do
   end
   defp create_identity(api_key, password, username, endpoint) do
 
+    if is_nil(api_key), do: raise("API KEY IS NOT SET")
+    if is_nil(password), do: raise("PASSWORD IS NOT SET")
+    if is_nil(username), do: raise("USERNAEM IS NOT SET")
+
     response = case api_key do
 
       :nil ->
