@@ -25,34 +25,43 @@ defmodule Openstex.Adapters.Rackspace.Utils do
     create_identity(api_key, password, username, endpoint)
   end
   defp create_identity(api_key, password, username, endpoint) do
-    {:ok, conn} =
-    case api_key do
+
+    response = case api_key do
+
       :nil ->
         Openstex.Keystone.V2.get_token(endpoint, username, password)
         |> Openstex.Request.request(:nil)
+
       api_key ->
         body =
-        %{
-          "auth" =>
-                  %{
-                    "RAX-KSKEY:apiKeyCredentials" => %{
-                                                      "apiKey" => api_key,
-                                                      "username" => username
-                                                      }
-                  }
-        }
-        |> Poison.encode!()
+          %{
+            "auth" =>
+                    %{
+                      "RAX-KSKEY:apiKeyCredentials" => %{
+                                                        "apiKey" => api_key,
+                                                        "username" => username
+                                                        }
+                    }
+          }
+          |> Poison.encode!()
+
         request =
-        %HTTPipe.Request{
-          method: :post,
-          url: endpoint <> "/tokens",
-          body: body,
-          headers: @default_headers |> Enum.into(%{})
-        }
+          %HTTPipe.Request{
+            method: :post,
+            url: endpoint <> "/tokens",
+            body: body,
+            headers: @default_headers |> Enum.into(%{})
+          }
+
         %HTTPipe.Conn{request: request, adapter_options: @default_options, adapter: @default_adapter}
         |> Openstex.Request.request(:nil)
     end
-      Helpers.parse_nested_map_into_identity_struct(conn.response.body)
+
+    case reponse do
+      {:ok, conn} ->
+        Helpers.parse_nested_map_into_identity_struct(conn.response.body)
+      {:errro, reason} -> raise(reason)
+    end
   end
 
 end
